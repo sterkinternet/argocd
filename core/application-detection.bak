@@ -1,0 +1,27 @@
+#This is the manifest for the cluster in argocd. 
+#After applying this (it can be through kubectl or on the argocd UI), the cluster will be detected in argocd.
+#Useful for disaster recovery scenarios where ArgoCD lost all configuration and we need to do a manual recover
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: application-detection
+  namespace: argocd
+spec:
+  destination:
+    namespace: application-detection
+    server: https://kubernetes.default.svc
+  project: default
+  source:
+    path: deployments/prd
+    directory: 
+      recurse: true
+      include: '{-application.yaml,*/application.yaml}'
+    repoURL: >-
+      https://247tailorsteel@dev.azure.com/247tailorsteel/Ops/_git/platform-apps
+    targetRevision: HEAD
+  syncPolicy:
+    syncOptions:
+      - CreateNamespace=true
+    automated:
+      prune: false # never enable prune, because it could lead to removing all applications (including argocd itself)
+      selfHeal: true
